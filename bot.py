@@ -142,6 +142,8 @@ def check_site(site_name, site_data):
         now = datetime.now().strftime('%H:%M:%S')
         page_text = response.text
 
+        print(f"DEBUG {site_name}: status={response.status_code} length={len(page_text)} has_pokemon={'Pokemon' in page_text}")
+
         # Determine stock status
         is_in_stock = site_data["in_stock_text"] in page_text
         if site_data["out_stock_text"] and site_data["out_stock_text"] in page_text:
