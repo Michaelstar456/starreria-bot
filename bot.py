@@ -13,8 +13,8 @@ DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "YOUR_WEBHOOK_URL_HERE")
 
 SITES = {
     "🃏 Chaos Cards — Pitch Black Ex": {
-        "url": "https://www.chaoscards.co.uk/prod/pokemon-tcg-pitch-black-ex-booster-box-japanese",
-        "in_stock_text": "Add to Basket",
+        "url": "https://www.chaoscards.co.uk/prod/booster-packs-pokemon/pokemon-mega-evolution-pitch-black-booster-bundle",
+        "in_stock_text": "Pokemon",
         "out_stock_text": "Out of Stock",
         "in_stock": False,
     },
