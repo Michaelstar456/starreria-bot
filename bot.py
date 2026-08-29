@@ -30,49 +30,42 @@ SITES = {
         "out_stock_text": "Out of Stock",
         "in_stock": False,
     },
-    "🃏 Chaos Cards - Pitch Black Booter Pack": {
+    "🃏 Chaos Cards — Pitch Black Booster Pack": {
         "url": "https://www.chaoscards.co.uk/prod/booster-packs-pokemon/pokemon-mega-evolution-pitch-black-booster-pack-10-cards",
-        "in_stock_text": "Add to cart",
-        "out_stock_text": "Sold out",
-        "in_stock": False,
-    },
-    "🃏 Chaos Cards - Chaos Rising Booster Pack": {
-        "url": "https://www.chaoscards.co.uk/prod/booster-packs-pokemon/pokemon-mega-evolution-chaos-rising-booster-pack-10-cards",
-        "in_stock_text": "Add to Cart",
+        "in_stock_text": "Add to Basket",
         "out_stock_text": "Out of Stock",
         "in_stock": False,
     },
-    "🃏 Chaos Cards - Chaos Rising Booster Bundle": {
+    "🃏 Chaos Cards — Chaos Rising Booster Pack": {
+        "url": "https://www.chaoscards.co.uk/prod/booster-packs-pokemon/pokemon-mega-evolution-chaos-rising-booster-pack-10-cards",
+        "in_stock_text": "Add to Basket",
+        "out_stock_text": "Out of Stock",
+        "in_stock": False,
+    },
+    "🃏 Chaos Cards — Chaos Rising Booster Bundle": {
         "url": "https://www.chaoscards.co.uk/prod/booster-packs-pokemon/pokemon-mega-evolution-chaos-rising-booster-bundle",
-        "in_stock_text": "Add to cart",
-        "out_stock_text": "Sold out",
+        "in_stock_text": "Add to Basket",
+        "out_stock_text": "Out of Stock",
         "in_stock": False,
     },
-     "🃏 Chaos Cards - Chaos Rising Elite Trainer Box": {
+    "🃏 Chaos Cards — Chaos Rising Elite Trainer Box": {
         "url": "https://www.chaoscards.co.uk/prod/elite-trainer-boxes-pokemon/pokemon-mega-evolution-chaos-rising-elite-trainer-box",
-        "in_stock_text": "Add to cart",
-        "out_stock_text": "Sold out",
+        "in_stock_text": "Add to Basket",
+        "out_stock_text": "Out of Stock",
         "in_stock": False,
     },
-     "🃏 Chaos Cards - Chaos Rising Elite Trainer Box": {
+    "🃏 Chaos Cards — Chaos Rising Booster Box": {
         "url": "https://www.chaoscards.co.uk/prod/booster-boxes-pokemon/pokemon-mega-evolution-chaos-rising-booster-box-36-packs",
-        "in_stock_text": "Add to cart",
-        "out_stock_text": "Sold out",
+        "in_stock_text": "Add to Basket",
+        "out_stock_text": "Out of Stock",
         "in_stock": False,
     },
-    
     "🎮 Pokemon Center UK": {
         "url": "https://www.pokemoncenter.com/en-gb",
         "in_stock_text": "Add to Cart",
         "out_stock_text": None,
         "in_stock": False,
     },
-    " ": {
-        "url": "",
-        "in_stock_text": "Add to Cart",
-        "out_stock_text": "Out of Stock",
-        "in_stock": False,
-    
 }
 
 # ============================================================
