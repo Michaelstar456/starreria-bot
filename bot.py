@@ -1,9 +1,9 @@
-import requests
-from bs4 import BeautifulSoup
+import cloudscraper
 import time
 import schedule
 import os
 from datetime import datetime
+import requests
 
 # ============================================================
 # CONFIGURATION — EDIT THESE
@@ -11,181 +11,144 @@ from datetime import datetime
 
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "YOUR_WEBHOOK_URL_HERE")
 
-# Add or remove sites here
-# "check_text" = text that appears on page WHEN IN STOCK
-# "out_text" = text that appears WHEN OUT OF STOCK (optional)
-
 SITES = {
-    "🃏 Chaos Cards — Pitch Black Ex Box": {
+    "🃏 Chaos Cards — Pitch Black Ex": {
         "url": "https://www.chaoscards.co.uk/prod/pokemon-tcg-pitch-black-ex-booster-box-japanese",
-        "check_text": "Add to Basket",
-        "out_text": "Out of Stock",
+        "in_stock_text": "Add to Basket",
+        "out_stock_text": "Out of Stock",
         "in_stock": False,
-        "last_checked": None
     },
-    "🃏 Chaos Cards — Stellar Miracle Box": {
+    "🃏 Chaos Cards — Stellar Miracle": {
         "url": "https://www.chaoscards.co.uk/prod/pokemon-tcg-stellar-miracle-booster-box-japanese",
-        "check_text": "Add to Basket",
-        "out_text": "Out of Stock",
+        "in_stock_text": "Add to Basket",
+        "out_stock_text": "Out of Stock",
         "in_stock": False,
-        "last_checked": None
     },
-    "🃏 Chaos Cards — Abyss Eye Box": {
+    "🃏 Chaos Cards — Abyss Eye": {
         "url": "https://www.chaoscards.co.uk/prod/pokemon-tcg-abyss-eye-booster-box-japanese",
-        "check_text": "Add to Basket",
-        "out_text": "Out of Stock",
+        "in_stock_text": "Add to Basket",
+        "out_stock_text": "Out of Stock",
         "in_stock": False,
-        "last_checked": None
     },
-    "🎮 Pokemon Center UK — Queue": {
-        "url": "https://www.pokemoncenter.com/en-gb",
-        "check_text": "Join Queue",
-        "out_text": None,
-        "in_stock": False,
-        "last_checked": None
-    },
-    "🃏 Total Cards — Booster Boxes": {
-        "url": "https://www.totalcards.net/catalogsearch/result/?q=pokemon+booster+box+japanese",
-        "check_text": "Add to Cart",
-        "out_text": "Out of Stock",
-        "in_stock": False,
-        "last_checked": None
-    },
-    "🃏 Big Orbit Cards": {
+    "🃏 Big Orbit Cards — Pokemon Boxes": {
         "url": "https://www.bigorbitcards.co.uk/collections/pokemon-booster-boxes",
-        "check_text": "Add to cart",
-        "out_text": "Sold out",
+        "in_stock_text": "Add to cart",
+        "out_stock_text": "Sold out",
         "in_stock": False,
-        "last_checked": None
-    }
+    },
+    "🃏 Total Cards — Japanese Pokemon": {
+        "url": "https://www.totalcards.net/catalogsearch/result/?q=pokemon+booster+box+japanese",
+        "in_stock_text": "Add to Cart",
+        "out_stock_text": "Out of Stock",
+        "in_stock": False,
+    },
+    "🎮 Pokemon Center UK": {
+        "url": "https://www.pokemoncenter.com/en-gb",
+        "in_stock_text": "Add to Cart",
+        "out_stock_text": None,
+        "in_stock": False,
+    },
 }
 
 # ============================================================
-# BOT FUNCTIONS
+# DISCORD FUNCTIONS
 # ============================================================
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-}
-
-def send_discord_alert(site_name, url, back_in_stock=True):
-    if back_in_stock:
-        message = {
-            "content": (
-                f"@everyone\n"
-                f"🚨 **RESTOCK ALERT** 🚨\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"**{site_name}**\n"
-                f"✅ Back in stock!\n"
-                f"🔗 {url}\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"⚡ Be quick — these sell fast!"
-            )
-        }
-    else:
-        message = {
-            "content": (
-                f"📢 **STOCK UPDATE**\n"
-                f"**{site_name}** is now out of stock."
-            )
-        }
-    
+def send_discord_message(content):
+    """Send a message to Discord webhook"""
     try:
-        response = requests.post(DISCORD_WEBHOOK, json=message)
+        response = requests.post(
+            DISCORD_WEBHOOK,
+            json={"content": content},
+            timeout=10
+        )
         if response.status_code == 204:
-            print(f"✅ Discord alert sent for {site_name}")
+            print(f"✅ Discord message sent")
         else:
-            print(f"❌ Discord alert failed: {response.status_code}")
+            print(f"❌ Discord error: {response.status_code} — {response.text}")
     except Exception as e:
-        print(f"❌ Failed to send Discord alert: {e}")
+        print(f"❌ Discord failed: {e}")
+
+def send_restock_alert(site_name, url):
+    send_discord_message(
+        f"@everyone\n"
+        f"🚨 **RESTOCK ALERT** 🚨\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"**{site_name}**\n"
+        f"✅ Back in stock!\n"
+        f"🔗 {url}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"⚡ Be quick — these sell fast!"
+    )
 
 def send_startup_message():
-    message = {
-        "content": (
-            f"🤖 **Starreria Restock Bot Online**\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"✅ Monitoring {len(SITES)} sites\n"
-            f"⏰ Checking every 5 minutes\n"
-            f"📅 Started: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"Sites being monitored:\n" +
-            "\n".join([f"• {name}" for name in SITES.keys()])
-        )
+    sites_list = "\n".join([f"• {name}" for name in SITES.keys()])
+    send_discord_message(
+        f"🤖 **Starreria Restock Bot Online**\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"✅ Monitoring {len(SITES)} sites\n"
+        f"⏰ Checking every 5 minutes\n"
+        f"📅 Started: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"**Sites monitored:**\n{sites_list}"
+    )
+
+def send_daily_status():
+    status_lines = "\n".join([
+        f"{'✅' if data['in_stock'] else '❌'} {name}"
+        for name, data in SITES.items()
+    ])
+    send_discord_message(
+        f"💚 **Daily Status Update**\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"{status_lines}"
+    )
+
+# ============================================================
+# CHECKING FUNCTIONS
+# ============================================================
+
+scraper = cloudscraper.create_scraper(
+    browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'mobile': False
     }
-    try:
-        requests.post(DISCORD_WEBHOOK, json=message)
-        print("✅ Startup message sent to Discord")
-    except Exception as e:
-        print(f"❌ Failed to send startup message: {e}")
+)
 
 def check_site(site_name, site_data):
     try:
-        response = requests.get(
-            site_data["url"],
-            headers=HEADERS,
-            timeout=15
-        )
-        
+        response = scraper.get(site_data["url"], timeout=20)
         now = datetime.now().strftime('%H:%M:%S')
-        site_data["last_checked"] = now
-        
         page_text = response.text
-        is_in_stock = site_data["check_text"] in page_text
-        
-        # Check if out of stock text overrides
-        if site_data["out_text"] and site_data["out_text"] in page_text:
-            is_in_stock = False
-        
-        print(f"[{now}] {site_name}: {'✅ IN STOCK' if is_in_stock else '❌ Out of Stock'}")
-        
-        # Only alert on STATUS CHANGE — no spam
-        if is_in_stock and not site_data["in_stock"]:
-            # Was out of stock, now in stock — ALERT
-            site_data["in_stock"] = True
-            send_discord_alert(site_name, site_data["url"], back_in_stock=True)
-            
-        elif not is_in_stock and site_data["in_stock"]:
-            # Was in stock, now out of stock
-            site_data["in_stock"] = False
-            print(f"📦 {site_name} is now out of stock")
 
-    except requests.exceptions.Timeout:
-        print(f"⚠️ Timeout checking {site_name}")
-    except requests.exceptions.ConnectionError:
-        print(f"⚠️ Connection error checking {site_name}")
+        # Determine stock status
+        is_in_stock = site_data["in_stock_text"] in page_text
+        if site_data["out_stock_text"] and site_data["out_stock_text"] in page_text:
+            is_in_stock = False
+
+        status = "✅ IN STOCK" if is_in_stock else "❌ Out of Stock"
+        print(f"[{now}] {site_name}: {status}")
+
+        # Only alert on change from out of stock to in stock
+        if is_in_stock and not site_data["in_stock"]:
+            site_data["in_stock"] = True
+            send_restock_alert(site_name, site_data["url"])
+        elif not is_in_stock and site_data["in_stock"]:
+            site_data["in_stock"] = False
+
     except Exception as e:
         print(f"⚠️ Error checking {site_name}: {e}")
 
 def check_all_sites():
     print(f"\n{'='*50}")
-    print(f"🔍 Running checks at {datetime.now().strftime('%H:%M:%S')}")
+    print(f"🔍 Checking all sites — {datetime.now().strftime('%H:%M:%S')}")
     print(f"{'='*50}")
-    
     for site_name, site_data in SITES.items():
         check_site(site_name, site_data)
-        time.sleep(5)  # 5 second gap between sites — respectful crawling
-
-def send_status_update():
-    # Sends a daily status update to Discord so you know bot is alive
-    message = {
-        "content": (
-            f"💚 **Bot Status Update**\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"✅ Bot is running normally\n"
-            f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
-            f"🔍 Monitoring {len(SITES)} sites every 5 minutes\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n" +
-            "\n".join([
-                f"{'✅' if data['in_stock'] else '❌'} {name}"
-                for name, data in SITES.items()
-            ])
-        )
-    }
-    try:
-        requests.post(DISCORD_WEBHOOK, json=message)
-        print("✅ Daily status update sent")
-    except Exception as e:
-        print(f"❌ Failed to send status update: {e}")
+        time.sleep(5)
 
 # ============================================================
 # MAIN
@@ -193,23 +156,19 @@ def send_status_update():
 
 if __name__ == "__main__":
     print("🤖 Starreria Restock Bot Starting...")
-    print(f"📡 Monitoring {len(SITES)} sites")
-    print(f"⏰ Check interval: 5 minutes")
-    
-    # Send startup message to Discord
+
+    if DISCORD_WEBHOOK == "YOUR_WEBHOOK_URL_HERE":
+        print("❌ ERROR: Please set your DISCORD_WEBHOOK environment variable!")
+        exit(1)
+
     send_startup_message()
-    
-    # Run first check immediately
     check_all_sites()
-    
-    # Schedule checks every 5 minutes
+
     schedule.every(5).minutes.do(check_all_sites)
-    
-    # Daily status update at 9am
-    schedule.every().day.at("09:00").do(send_status_update)
-    
-    print("\n✅ Bot is running — press CTRL+C to stop")
-    
+    schedule.every().day.at("09:00").do(send_daily_status)
+
+    print("\n✅ Bot running — checking every 5 minutes")
+
     while True:
         schedule.run_pending()
         time.sleep(1)
